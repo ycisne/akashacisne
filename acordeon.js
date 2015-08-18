@@ -10,57 +10,47 @@
  *	Copyright 2014 Yadira Cisneros - ycisne@gmail.com
  *
  */
-	(function($){
-		var methods = {
-			init: function(options){
-				var defaults = {
-					claseActivo: 'active',
-					contenedor: '.acordeon-content',
-					dataTag: 'acordeon-abierto',
-					dataTitle: 'inicializado',
-					first: true,
-					trigger: 'h3',
-					visibilidad: 0
-				};
-				return this.each(function(){
-					if(options){
-						defaults = $.extend(defaults, options);
-					}
-					var $this = $(this),
-						data = $this.data(defaults.dataTag);
-					if(!data){
-						if($this.css('display') === 'none') {
-							$this.css('display','block');
-							defaults.visibilidad = 1;
-						}
-						if(defaults.visibilidad === 1) {
-							$this.css('display','none');
-						}
-						if(defaults.first) {
-							$this.find(defaults.trigger).first().addClass(defaults.claseActivo);
-							$this.find(defaults.contenedor).not(':first').hide();
-						} else {
-							$this.find(defaults.contenedor).hide();
-						}
-						$this.find(defaults.trigger).bind({
-							click: function(){
-								$(this).next(defaults.contenedor).slideDown().siblings(defaults.contenedor+':visible').slideUp();
-								$(this).toggleClass(defaults.claseActivo);
-								$(this).siblings(defaults.trigger).removeClass(defaults.claseActivo);
-							}
-						});
-						data = $this.data(defaults.dataTag, defaults.dataTitle);
-					}
-				});
+jQuery.fn.acordeon = function(options){
+	var defaults = {
+		claseActivo: 'active', // Clase para el trigger que este activo
+		claseAplicado: 'acordeon-on', // Clase para saber si esta activado el acordeón
+		contenedor: '.acordeon-content', // Clase para el contenedor de cada uno de los div's que abre el contenedor
+		first: true, // Por default, el primer elemento estará abierto. False para que este cerrado al inicio
+		slideToggle: true, // Por default, se abre uno y se cierran los otros. False para que se abran en el click y no se cierren los otros
+		trigger: 'h3' // Objeto trigger
+	},
+	methods = {
+		onClick: function(){
+			$(this).next(defaults.contenedor).slideToggle();
+			if(defaults.slideToggle){
+				$(this).next(defaults.contenedor).siblings(defaults.contenedor+':visible').slideToggle();
 			}
-		};
-		$.fn.acordeon = function (method){
-			if(methods[method]){
-				return methods[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
-			} else if ( typeof method === 'object' || ! method ) {
-				return methods.init.apply( this, arguments );
+			$(this).toggleClass(defaults.claseActivo);
+			$(this).siblings(defaults.trigger).removeClass(defaults.claseActivo);
+		}
+	};
+	return this.each(function(){
+		if(options){
+			defaults = $.extend(defaults, options);
+		}
+		var $this = $(this),
+			visibilidad = 0;
+		if(!$this.hasClass(defaults.claseAplicado)){
+			if($this.css('display') === 'none') {
+				$this.css('display','block');
+				visibilidad = 1;
+			}
+			if(visibilidad === 1) {
+				$this.css('display','none');
+			}
+			if(defaults.first) {
+				$this.find(defaults.trigger).first().addClass(defaults.claseActivo);
+				$this.find(defaults.contenedor).not(':first').hide();
 			} else {
-				$.error('El método que intenta utilizar no existe en jQuery.acordeon: '+method);
+				$this.find(defaults.contenedor).hide();
 			}
-		};
-	})(jQuery);
+			$(this).find(defaults.trigger).click(methods.onClick);
+			$this.addClass(defaults.claseAplicado);
+		}
+	});
+};
